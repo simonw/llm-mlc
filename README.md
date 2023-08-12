@@ -62,12 +62,17 @@ This will download around 8GB of content.
 
 You can also use `Llama-2-13b-chat` or `Llama-2-70b-chat`, though these files are a lot larger.
 
-You can see a list of models you have installed this way using:
+The `download-model` command also takes a URL to one of [the MLC repositories on Hugging Face](https://huggingface.co/mlc-ai).
+
+For example, to install [mlc-chat-WizardLM-13B-V1](https://huggingface.co/mlc-ai/mlc-chat-WizardLM-13B-V1.2-q4f16_1):
+```bash
+llm mlc download-model https://huggingface.co/mlc-ai/mlc-chat-WizardLM-13B-V1.2-q4f16_1
+```
+You can see a full list of models you have installed this way using:
 ```bash
 llm mlc models
 ```
 This will also show the name of the model you should use to activate it, e.g.:
-
 ```
 MlcModel: mlc-chat-Llama-2-7b-chat-hf-q4f16_1
 ```
