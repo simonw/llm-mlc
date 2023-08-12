@@ -185,6 +185,8 @@ def register_commands(cli):
 
 
 class MlcModel(llm.Model):
+    can_stream = True
+
     def __init__(self, model_id, model_path):
         self.model_id = model_id
         self.model_path = model_path
@@ -193,26 +195,48 @@ class MlcModel(llm.Model):
     def execute(self, prompt, stream, response, conversation):
         try:
             import mlc_chat
+            from mlc_chat.base import get_delta_message
+            import mlc_chat.chat_module
         except ImportError:
             raise click.ClickException(MLC_INSTALL)
+
+        # Disable print() in that module
+        def noop(*args, **kwargs):
+            pass
+
+        mlc_chat.chat_module.__dict__["print"] = noop
+
+        class StreamingChatModule(mlc_chat.ChatModule):
+            def generate_iter(self, prompt):
+                curr_message = ""
+                self._prefill(prompt)
+                while not self._stopped():
+                    self._decode()
+                    new_msg = self._get_message()
+                    delta = get_delta_message(curr_message, new_msg)
+                    curr_message = new_msg
+                    yield delta
+
         with SuppressOutput():
             if conversation:
                 raise click.ClickException("Conversation mode is not supported yet")
             if self.chat_mod is None:
                 with temp_chdir(llm.user_dir() / "mlc"):
-                    self.chat_mod = mlc_chat.ChatModule(model=self.model_path)
+                    self.chat_mod = StreamingChatModule(model=self.model_path)
 
             if prompt.system:
                 conv_config = mlc_chat.ConvConfig(system=prompt.system)
             else:
                 conv_config = mlc_chat.ConvConfig()
-
             self.chat_mod.reset_chat(
                 mlc_chat.ChatConfig(max_gen_len=512, conv_config=conv_config)
             )
 
-            output = self.chat_mod.generate(prompt=prompt.prompt)
-            yield output
+            if stream:
+                yield from self.chat_mod.generate_iter(prompt=prompt.prompt)
+            else:
+                # All in one go
+                yield self.chat_mod.generate(prompt=prompt.prompt)
 
 
 @contextlib.contextmanager
@@ -238,6 +262,12 @@ class SuppressOutput:
         os.dup2(self.devnull_fd, 1)
         os.dup2(self.devnull_fd, 2)
 
+        # Writes to sys.stdout and sys.stderr should still work
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
+        sys.stdout = os.fdopen(self.stdout_fd, "w")
+        sys.stderr = os.fdopen(self.stderr_fd, "w")
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Restore stdout and stderr to their original state
         os.dup2(self.stdout_fd, 1)
@@ -249,3 +279,7 @@ class SuppressOutput:
 
         # Close the file descriptor for /dev/null
         os.close(self.devnull_fd)
+
+        # Restore sys.stdout and sys.stderr
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
