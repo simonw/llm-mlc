@@ -94,6 +94,16 @@ llm -m mlc-chat-Llama-2-7b-chat-hf-q4f16_1 \
 >
 > Remember, the most important thing is to choose a name that you and your ferret will love and enjoy!
 
+And to send a follow-up prompt to continue the current conversation, use `-c`:
+
+```bash
+llm -c 'two more'
+```
+
+> Of course! Here are two more cute name ideas for a pet ferret:
+>
+> 1. Digger - a fun and playful name that suits a pet that loves to dig and burrow, and is also a nod to the ferret's natural instincts as a burrower.
+> 2. Gizmo - a fun and quirky name that suits a pet with a curious and mischievous personality, and is also a nod to the ferret's playful and inventive nature.
 
 ## Development
 

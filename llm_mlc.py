@@ -218,18 +218,40 @@ class MlcModel(llm.Model):
                     yield delta
 
         with SuppressOutput():
+            config_kwargs = {}
+
+            system_prompt = None
             if conversation:
-                raise click.ClickException("Conversation mode is not supported yet")
+                messages = []
+                # Populate messages from the conversation history
+                for prev_response in conversation.responses:
+                    if prev_response.prompt.system:
+                        # Use the last set system prompt in that sequence
+                        system_prompt = prev_response.prompt.system
+                    messages.extend(
+                        [
+                            ["USER", prev_response.prompt.prompt],
+                            ["ASSISTANT", prev_response.text()],
+                        ]
+                    )
+                if messages:
+                    config_kwargs["messages"] = messages
+                    config_kwargs["offset"] = len(messages)
+
             if self.chat_mod is None:
                 with temp_chdir(llm.user_dir() / "mlc"):
                     self.chat_mod = StreamingChatModule(model=self.model_path)
 
             if prompt.system:
-                conv_config = mlc_chat.ConvConfig(system=prompt.system)
-            else:
-                conv_config = mlc_chat.ConvConfig()
+                system_prompt = prompt.system
+
+            if system_prompt is not None:
+                config_kwargs["system"] = system_prompt
+
             self.chat_mod.reset_chat(
-                mlc_chat.ChatConfig(max_gen_len=512, conv_config=conv_config)
+                mlc_chat.ChatConfig(
+                    max_gen_len=512, conv_config=mlc_chat.ConvConfig(**config_kwargs)
+                )
             )
 
             if stream:
