@@ -3,6 +3,7 @@ import contextlib
 import llm
 import os
 import subprocess
+import sys
 import textwrap
 
 
@@ -169,6 +170,18 @@ def register_commands(cli):
         "Display the path to the directory holding downloaded models"
         directory = llm.user_dir() / "mlc" / "dist" / "prebuilt"
         click.echo(directory.absolute())
+
+    @mlc.command(
+        context_settings={
+            "ignore_unknown_options": True,
+            "allow_extra_args": True,
+        }
+    )
+    @click.pass_context
+    def pip(ctx, **kwargs):
+        "Run pip in the LLM virtual environment"
+        cmd = [sys.executable, "-m", "pip"] + ctx.args
+        subprocess.run(cmd)
 
 
 class MlcModel(llm.Model):
