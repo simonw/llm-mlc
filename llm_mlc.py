@@ -1,5 +1,6 @@
 import click
 import contextlib
+import json
 import llm
 import os
 import subprocess
@@ -140,8 +141,14 @@ def register_commands(cli):
         ).format("\n".join("- {}".format(key) for key in MODEL_URLS.keys()))
     )
     @click.argument("name_or_url")
-    def download_model(name_or_url):
+    @click.option(
+        "aliases", "-a", "--alias", multiple=True, help="Alias to use for this model"
+    )
+    def download_model(name_or_url, aliases):
         url = MODEL_URLS.get(name_or_url) or name_or_url
+        if name_or_url in MODEL_URLS:
+            # Set that up as an alias too
+            aliases = list(aliases) + [name_or_url]
         if not url.startswith("https://"):
             raise click.BadParameter("Invalid model name or URL")
         directory = llm.user_dir() / "mlc"
@@ -157,15 +164,30 @@ def register_commands(cli):
             str((prebuilt_dir / last_bit).absolute()),
         ]
         subprocess.run(git_clone_command, check=True)
+        if aliases:
+            aliases_path = llm.user_dir() / "aliases.json"
+            if not aliases_path.exists():
+                aliases_path.write_text("{}")
+            aliases_data = json.loads(aliases_path.read_text())
+            for alias in aliases:
+                aliases_data[alias] = last_bit
+            aliases_path.write_text(json.dumps(aliases_data, indent=2))
 
     @mlc.command()
     def models():
         "List installed MLC models"
 
-        def show_model(model):
-            click.echo(model)
-
-        register_models(show_model)
+        for model_alias in llm.get_models_with_aliases():
+            if isinstance(model_alias.model, MlcModel):
+                aliases = ", ".join(model_alias.aliases)
+                if aliases:
+                    aliases = " (aliases: {})".format(aliases)
+                click.echo(
+                    "{}{}".format(
+                        model_alias.model,
+                        aliases,
+                    )
+                )
 
     @mlc.command()
     def models_dir():

@@ -57,11 +57,13 @@ After installation you will need to download a model using the `llm mlc download
 Here's how to download and install Llama 2:
 
 ```bash
-llm mlc download-model Llama-2-7b-chat
+llm mlc download-model Llama-2-7b-chat --alias llama2
 ```
 This will download around 8GB of content.
 
-You can also use `Llama-2-13b-chat` or `Llama-2-70b-chat`, though these files are a lot larger.
+You can also use `Llama-2-13b-chat` (about 15.15GB) or `Llama-2-70b-chat` (extremely big), though these files are a lot larger.
+
+The `-a/--alias` is optional, but can be used to set a shorter alias for the model. This can then be used with `llm -m <alias>` instead of the full name.
 
 The `download-model` command also takes a URL to one of [the MLC repositories on Hugging Face](https://huggingface.co/mlc-ai).
 
@@ -75,14 +77,13 @@ llm mlc models
 ```
 This will also show the name of the model you should use to activate it, e.g.:
 ```
-MlcModel: mlc-chat-Llama-2-7b-chat-hf-q4f16_1
+MlcModel: mlc-chat-Llama-2-7b-chat-hf-q4f16_1 (aliases: llama2, Llama-2-7b-chat)
 ```
 ## Running a prompt through a model
 
 Once you have downloaded and added a model, you can run a prompt like this:
 ```bash
-llm -m mlc-chat-Llama-2-7b-chat-hf-q4f16_1 \
-  'five names for a cute pet ferret'
+llm -m Llama-2-7b-chat 'five names for a cute pet ferret'
 ```
 
 > Great! Here are five cute and creative name suggestions for a pet ferret:
