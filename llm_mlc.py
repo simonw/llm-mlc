@@ -68,6 +68,8 @@ def _ensure_models_file():
 def register_models(register):
     directory = llm.user_dir() / "mlc"
     models_dir = directory / "dist" / "prebuilt"
+    if not models_dir.exists():
+        return
     for child in models_dir.iterdir():
         if child.is_dir() and child.name != "lib":
             # It's a model! Register it
