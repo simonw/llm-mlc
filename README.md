@@ -13,12 +13,26 @@ Install this plugin in the same environment as `llm`.
 ```bash
 llm install llm-mlc
 ```
-Next, run the `llm mlc setup` command to complete the installation:
+You need to install two dependencies manually - `mlc-chat-nightly` and `mlc-ai-nightly` - because the installation process differs from one platform to another in a way that is not yet automated.
+
+The steps for this are [described in detail on the mlc.ai/package](https://mlc.ai/package/) site.
+
+If you are on an Apple Silicon M1/M2 Mac you can run this command:
+```bash
+llm mlc pip install --pre --force-reinstall \
+  mlc-ai-nightly \
+  mlc-chat-nightly \
+  -f https://mlc.ai/wheels
+```
+The `llm mlc pip` command here ensures that `pip` will run in the same virtual environment as `llm` itself.
+
+For other systems, [follow the instructions here](https://mlc.ai/package/).
+
+Finally, run the `llm mlc setup` command to complete the installation:
 ```bash
 llm mlc setup
 ```
-This will setup `git lfs` and use it to install some extra dependencies:
-
+This will setup `git lfs` and use it to download some extra dependencies:
 ```
 Git LFS is not installed. Should I run 'git lfs install' for you?
 Install Git LFS? [y/N]: y
@@ -35,19 +49,6 @@ Resolving deltas: 100% (152/152), done.
 Updating files: 100% (60/60), done.
 Ready to install models in /Users/simon/Library/Application Support/io.datasette.llm/mlc
 ```
-
-Finally, install the `mlc_chat` package. This is a few extra steps, which are [described in detail on the mlc.ai/package](https://mlc.ai/package/) site.
-
-If you are on an Apple Silicon M1/M2 Mac you can run this command:
-```bash
-llm mlc pip install --pre --force-reinstall \
-  mlc-ai-nightly \
-  mlc-chat-nightly \
-  -f https://mlc.ai/wheels
-```
-The `llm mlc pip` command ensures that `pip` will run in the same virtual environment as `llm` itself.
-
-For other systems, [follow the instructions here](https://mlc.ai/package/).
 
 ## Installing models
 
