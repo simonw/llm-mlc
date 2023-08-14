@@ -107,6 +107,25 @@ llm -c 'two more'
 > 1. Digger - a fun and playful name that suits a pet that loves to dig and burrow, and is also a nod to the ferret's natural instincts as a burrower.
 > 2. Gizmo - a fun and quirky name that suits a pet with a curious and mischievous personality, and is also a nod to the ferret's playful and inventive nature.
 
+## Model options
+
+These options are available for all models. Each of these takes a floating point value between 0.0 and 1.0.
+
+- `-o temperature`: A higher temperature encourages more diverse outputs, while a lower temperature produces more deterministic outputs.
+- `-o top_p`: At each step, we select tokens from the minimal set that has a cumulative probability exceeding this value.
+- `-o repetition_penalty`: Controls the likelihood of the model generating repeated texts.
+
+Use them like this:
+
+```bash
+llm -m Llama-2-7b-chat \
+  -o temperature 0.5 \
+  -o top_p 0.9 \
+  -o repetition_penalty 0.9 \
+  'five names for a cute pet ferret'
+```
+The [MLC documentation](https://mlc.ai/mlc-llm/docs/get_started/mlc_chat_config.html) has more details on these options.
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:

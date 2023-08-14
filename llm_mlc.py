@@ -3,9 +3,11 @@ import contextlib
 import json
 import llm
 import os
+from pydantic import Field
 import subprocess
 import sys
 import textwrap
+from typing import Optional
 
 
 MODEL_URLS = {
@@ -211,6 +213,34 @@ def register_commands(cli):
 class MlcModel(llm.Model):
     can_stream = True
 
+    class Options(llm.Options):
+        temperature: Optional[float] = Field(
+            description=(
+                "A higher temperature encourages more diverse outputs, while a "
+                "lower temperature produces more deterministic outputs"
+            ),
+            ge=0,
+            le=1,
+            default=None,
+        )
+        top_p: Optional[float] = Field(
+            description=(
+                "At each step, we select tokens from the minimal set that has a "
+                "cumulative probability exceeding this value"
+            ),
+            ge=0,
+            le=1,
+            default=None,
+        )
+        repetition_penalty: Optional[float] = Field(
+            description=(
+                "Controls the likelihood of the model generating repeated texts"
+            ),
+            ge=0,
+            le=1,
+            default=None,
+        )
+
     def __init__(self, model_id, model_path):
         self.model_id = model_id
         self.model_path = model_path
@@ -272,11 +302,20 @@ class MlcModel(llm.Model):
             if system_prompt is not None:
                 config_kwargs["system"] = system_prompt
 
-            self.chat_mod.reset_chat(
-                mlc_chat.ChatConfig(
-                    max_gen_len=512, conv_config=mlc_chat.ConvConfig(**config_kwargs)
-                )
-            )
+            chat_config_kwargs = {
+                "max_gen_len": 512,
+                "conv_config": mlc_chat.ConvConfig(**config_kwargs),
+            }
+            if prompt.options.temperature is not None:
+                chat_config_kwargs["temperature"] = prompt.options.temperature
+            if prompt.options.top_p is not None:
+                chat_config_kwargs["top_p"] = prompt.options.top_p
+            if prompt.options.repetition_penalty is not None:
+                chat_config_kwargs[
+                    "repetition_penalty"
+                ] = prompt.options.repetition_penalty
+
+            self.chat_mod.reset_chat(mlc_chat.ChatConfig(**chat_config_kwargs))
 
             if stream:
                 yield from self.chat_mod.generate_iter(prompt=prompt.prompt)
