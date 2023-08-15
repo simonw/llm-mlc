@@ -240,6 +240,11 @@ class MlcModel(llm.Model):
             le=1,
             default=None,
         )
+        max_gen_len: Optional[int] = Field(
+            description="The maximum length of the output text",
+            gt=0,
+            default=None,
+        )
 
     def __init__(self, model_id, model_path):
         self.model_id = model_id
@@ -303,7 +308,7 @@ class MlcModel(llm.Model):
                 config_kwargs["system"] = system_prompt
 
             chat_config_kwargs = {
-                "max_gen_len": 512,
+                "max_gen_len": prompt.options.max_gen_len or 512,
                 "conv_config": mlc_chat.ConvConfig(**config_kwargs),
             }
             if prompt.options.temperature is not None:
