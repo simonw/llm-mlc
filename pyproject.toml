@@ -1,6 +1,6 @@
 [project]
 name = "llm-mlc"
-version = "0.4"
+version = "0.5"
 description = "LLM plugin for running models using MLC"
 readme = "README.md"
 authors = [{name = "Simon Willison"}]
