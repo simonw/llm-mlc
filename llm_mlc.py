@@ -37,13 +37,18 @@ def is_git_lfs_command_available():
 
 def is_git_lfs_installed():
     try:
-        # Run the git config command to get the filter value
+        # Run the git lfs status command
         result = subprocess.check_output(
-            ["git", "config", "--get", "filter.lfs.clean"], encoding="utf-8"
+            ["git", "lfs", "status"], encoding="utf-8"
         ).strip()
 
-        # If the result contains "git-lfs clean", it's likely that Git LFS is installed
-        if "git-lfs clean" in result:
+        # If the result contains the result of object to be pushed or that it's
+        # not a git repo, it's likely that Git LFS is installed
+        if "Objects to be pushed" in result:
+            return True
+        elif "Objects to be committed" in result:
+            return True
+        elif "Not in a Git repository" in result:
             return True
         else:
             return False
